@@ -9,10 +9,10 @@ import asyncComponentLoader from '@/utils/loader';
 import { Pages, Routes } from './types';
 
 const routes: Routes = {
-  [Pages.Welcome]: {
-    component: asyncComponentLoader(() => import('@/pages/Welcome')),
+  [Pages.BuyBook]: {
+    component: asyncComponentLoader(() => import('@/pages/BuyBook')),
     path: '/',
-    title: '欢迎来到喷泉二手书，请先登录',
+    title: '买书',
     icon: HomeIcon,
     protect: true,
   },
@@ -22,10 +22,10 @@ const routes: Routes = {
     title: '登录',
     icon: GitHubIcon,
   },
-  [Pages.Page2]: {
-    component: asyncComponentLoader(() => import('@/pages/Page2')),
+  [Pages.SellBook]: {
+    component: asyncComponentLoader(() => import('@/pages/SellBook')),
     path: '/page-2',
-    title: 'Page 2',
+    title: '卖书',
     icon: AddTaskIcon,
     protect: true,
   },
