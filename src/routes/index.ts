@@ -14,6 +14,7 @@ const routes: Routes = {
     path: '/',
     title: '欢迎来到喷泉二手书，请先登录',
     icon: HomeIcon,
+    protect: true,
   },
   [Pages.Login]: {
     component: asyncComponentLoader(() => import('@/pages/Login')),
@@ -26,18 +27,21 @@ const routes: Routes = {
     path: '/page-2',
     title: 'Page 2',
     icon: AddTaskIcon,
+    protect: true,
   },
   [Pages.Page3]: {
     component: asyncComponentLoader(() => import('@/pages/Page3')),
     path: '/page-3',
     title: 'Page 3',
     icon: TerrainIcon,
+    protect: true,
   },
   [Pages.Page4]: {
     component: asyncComponentLoader(() => import('@/pages/Page4')),
     path: '/page-4',
     title: 'Page 4',
     icon: BugReportIcon,
+    protect: true,
   },
   [Pages.NotFound]: {
     component: asyncComponentLoader(() => import('@/pages/NotFound')),

@@ -13,6 +13,7 @@ enum Pages {
 }
 
 type PathRouteCustomProps = {
+  protect?: boolean;
   title?: string;
   component: FC;
   icon?: FC<SvgIconProps>;
