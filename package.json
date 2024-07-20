@@ -43,7 +43,8 @@
     "react-helmet-async": "^2.0.3",
     "react-hotkeys-hook": "^4.4.1",
     "react-router-dom": "^6.21.0",
-    "recoil": "^0.7.7"
+    "recoil": "^0.7.7",
+    "workbox-window": "^7.1.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.40.1",

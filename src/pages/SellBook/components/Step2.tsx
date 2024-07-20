@@ -1,26 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { RecordBookType } from '@/constant';
 import { Button, Box, Typography } from '@mui/material';
+// @ts-ignore
 import Quagga from 'quagga';
-
-// 添加 getUserMedia polyfill
-if (typeof navigator.mediaDevices === 'undefined') {
-  navigator.mediaDevices = {};
-}
-
-if (typeof navigator.mediaDevices.getUserMedia === 'undefined') {
-  navigator.mediaDevices.getUserMedia = function (constraints) {
-    const getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-
-    if (!getUserMedia) {
-      return Promise.reject(new Error('getUserMedia is not implemented in this browser'));
-    }
-
-    return new Promise(function (resolve, reject) {
-      getUserMedia.call(navigator, constraints, resolve, reject);
-    });
-  };
-}
 
 interface BookInfo {
   title: string;
@@ -86,7 +68,7 @@ export default function Step2({
             },
             locate: true,
           },
-          (err) => {
+          (err: any) => {
             if (err) {
               console.error(err);
               setError('无法初始化摄像头');
@@ -102,7 +84,7 @@ export default function Step2({
           },
         );
 
-        Quagga.onDetected((data) => {
+        Quagga.onDetected((data: { codeResult: { code: any } }) => {
           const scannedIsbn = data.codeResult.code;
           // alert(scannedIsbn)
           if (scannedIsbn) {
@@ -132,7 +114,7 @@ export default function Step2({
   if (recordBookType === RecordBookType.scanRecord) {
     return (
       <Box>
-        <Button variant="contained" onClick={handleScan} disabled={scanning || loading}>
+        <Button variant="contained" onClick={handleScan} disabled={scanning}>
           {scanning ? '正在扫描...' : '开始扫描ISBN码'}
         </Button>
         {scanning && (
