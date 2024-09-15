@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import TabBar from './components/TabBar';
+import { setRootFontSize } from './utils/viewport';
 
 // 懒加载页面组件
 const Home = lazy(() => import('./pages/Home'));
@@ -15,6 +16,7 @@ const LoadingIndicator = () => (
   </div>
 );
 
+setRootFontSize();
 function App() {
   return (
     <Router>
