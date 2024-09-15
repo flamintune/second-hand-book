@@ -77,7 +77,7 @@ const AuthPage: React.FC = () => {
               点击发送验证码
             </button>
           </div>
-          <div className="flex items-center mb-11">
+          <div className="flex items-center mb-16">
             <input
               type="checkbox"
               id="agreement"
