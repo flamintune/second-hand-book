@@ -1,7 +1,9 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import TabBar from './components/TabBar';
 import { setRootFontSize } from './utils/viewport';
+import AuthPage from './pages/AuthPage';
+import DeclarationOfUse from './pages/DeclarationOfUse';
 
 // 懒加载页面组件
 const Home = lazy(() => import('./pages/Home'));
@@ -17,23 +19,40 @@ const LoadingIndicator = () => (
 );
 
 setRootFontSize();
+
+const AppContent: React.FC = () => {
+  const location = useLocation();
+  const tabBarPages = ["/home","/my-purchases","/sell","/profile"]
+  const showTabBar = tabBarPages.includes(location.pathname);
+
+  return (
+    <div className="flex flex-col min-h-screen bg-gray-100">
+      <main className="flex-grow">
+        <Suspense fallback={<LoadingIndicator />}>
+          <Routes>
+            <Route path="/declaration" element={<DeclarationOfUse />} />
+            <Route path="/login" element={<AuthPage />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/my-purchases" element={<MyPurchases />} />
+            <Route path="/sell" element={<Sell />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </Suspense>
+      </main>
+      {showTabBar && (
+        <footer className="mt-auto">
+          <TabBar />
+        </footer>
+      )}
+    </div>
+  );
+};
+
 function App() {
   return (
     <Router>
-      <div className="flex flex-col min-h-screen">
-        <Suspense fallback={<LoadingIndicator />}>
-          <main className="flex-grow pb-14">
-            <Routes>
-              <Route path="/home" element={<Home />} />
-              <Route path="/my-purchases" element={<MyPurchases />} />
-              <Route path="/sell" element={<Sell />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="*" element={<Navigate to="/home" replace />} />
-            </Routes>
-          </main>
-        </Suspense>
-        <TabBar />
-      </div>
+      <AppContent />
     </Router>
   );
 }
