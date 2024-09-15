@@ -17,7 +17,7 @@ const TabBar: React.FC = () => {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-bottom">
       <div className="flex justify-around items-center h-14">
         {tabs.map((tab) => (
           <NavLink
