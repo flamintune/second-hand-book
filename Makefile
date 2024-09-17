@@ -34,4 +34,8 @@ help:
 	@echo "  make preview  - 预览构建后的项目"
 	@echo "  make help     - 显示此帮助信息"
 
+create:
+	sh create-componets-file.sh
+
 .PHONY: install dev build lint preview help
+

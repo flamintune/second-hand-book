@@ -10,7 +10,7 @@ mkdir -p $COMPONENT_DIR
 # Array of component names
 # COMPONENTS=("Home" "MyPurchases" "Sell" "Profile")
 # COMPONENTS=("DeclarationOfUse")
-COMPONENTS=("BackButton")
+COMPONENTS=("ScanLineIcon")
 
 # Function to create a component file
 create_component() {

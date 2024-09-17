@@ -1,4 +1,3 @@
-import { ChevronLeftIcon } from "@radix-ui/react-icons";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import BackButton from "../components/BackButton";
@@ -28,7 +27,7 @@ const AuthPage: React.FC = () => {
 
   return (
     <div className="flex flex-col justify-center min-h-screen p-4 bg-white">
-      <BackButton />
+      <BackButton to="/home"/>
       <div className="max-w-sm mx-auto w-full">
         <h1 className="text-2xl font-bold mb-2">手机号登陆注册</h1>
         <form onSubmit={handleSubmit}>
