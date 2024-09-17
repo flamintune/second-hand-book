@@ -1,11 +1,13 @@
 // src/components/DeclarationOfUse.tsx
 import React from 'react';
-import { Link } from 'react-router-dom';
+import BackButton from '../components/BackButton';
 
 const DeclarationOfUse: React.FC = () => {
+
   return (
-    <div className="flex flex-col min-h-screen p-4 bg-white">
-      <div className="max-w-2xl mx-auto w-full">
+    <div className="flex flex-col min-h-screen p-4 bg-white relative">
+      <BackButton />
+      <div className="max-w-2xl mx-auto w-full mt-12">
         <h1 className="text-2xl font-bold mb-4">交大喷泉二手书使用声明</h1>
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-2">1. 服务说明</h2>
@@ -27,7 +29,6 @@ const DeclarationOfUse: React.FC = () => {
           <h2 className="text-xl font-semibold mb-2">5. 协议修改</h2>
           <p>我们保留随时修改本使用声明的权利。修改后的声明将在平台上公布，继续使用本平台即表示同意修改后的声明。</p>
         </div>
-        <Link to="/login" className="text-blue-500 hover:underline">返回登录页面</Link>
       </div>
     </div>
   );

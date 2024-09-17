@@ -1,14 +1,16 @@
 #!/bin/bash
 
 # Define the directory where the components will be created
-COMPONENT_DIR="src/pages"
+# COMPONENT_DIR="src/pages"
+COMPONENT_DIR="src/components"
 
 # Create the directory if it doesn't exist
 mkdir -p $COMPONENT_DIR
 
 # Array of component names
 # COMPONENTS=("Home" "MyPurchases" "Sell" "Profile")
-COMPONENTS=("DeclarationOfUse")
+# COMPONENTS=("DeclarationOfUse")
+COMPONENTS=("BackButton")
 
 # Function to create a component file
 create_component() {
