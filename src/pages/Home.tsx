@@ -1,10 +1,15 @@
 // src/pages/Home.tsx
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import * as Tabs from '@radix-ui/react-tabs';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import Icon from '../components/Icon';
 
 const Home: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('selling');
+
   const bookListings = [
     { id: 1, title: '猫咪集美学', image: 'path_to_image' },
     { id: 2, title: '中国建筑史', image: 'path_to_image' },
@@ -12,6 +17,13 @@ const Home: React.FC = () => {
     { id: 4, title: '线性代数', image: 'path_to_image' },
     { id: 5, title: '马克思主义原理', image: 'path_to_image' },
   ];
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate(`/book-search?mode=${activeTab}&query=${encodeURIComponent(searchTerm)}`);
+    }
+  };
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
@@ -21,7 +33,11 @@ const Home: React.FC = () => {
       </header>
 
       {/* Tab navigation */}
-      <Tabs.Root defaultValue="selling" className="flex-grow flex flex-col">
+      <Tabs.Root 
+        defaultValue="selling" 
+        className="flex-grow flex flex-col"
+        onValueChange={(value) => setActiveTab(value as 'selling' | 'buying')}
+      >
         <Tabs.List className="flex bg-white">
           <Tabs.Trigger
             value="selling"
@@ -38,7 +54,7 @@ const Home: React.FC = () => {
         </Tabs.List>
 
         {/* Search bar */}
-        <div className="bg-white p-4 w-full flex items-center">
+        <form onSubmit={handleSearch} className="bg-white p-4 w-full flex items-center">
           <div className='flex flex-col justify-center'>
             <Icon name="scan" className="h-6 w-6 text-gray-400 mr-2 mb-1"></Icon>
             <span className='text-xs'>扫码</span>
@@ -49,9 +65,11 @@ const Home: React.FC = () => {
               type="text"
               placeholder="搜索书名、作者、分类、ISBN"
               className="w-full outline-none"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-        </div>
+        </form>
 
         {/* Book listings */}
         <Tabs.Content value="selling" className="flex-grow overflow-auto">
