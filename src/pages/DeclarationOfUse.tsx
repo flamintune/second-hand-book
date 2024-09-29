@@ -6,7 +6,6 @@ const DeclarationOfUse: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen p-4 bg-white relative">
-      <BackButton />
       <div className="max-w-2xl mx-auto w-full mt-12">
         <h1 className="text-2xl font-bold mb-4">交大喷泉二手书使用声明</h1>
         <div className="mb-6">

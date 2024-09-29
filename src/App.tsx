@@ -4,6 +4,7 @@ import TabBar from './components/TabBar';
 import { setRootFontSize } from './utils/viewport';
 import AuthPage from './pages/AuthPage';
 import DeclarationOfUse from './pages/DeclarationOfUse';
+import Setting from './pages/Setting';
 
 // 懒加载页面组件
 const Home = lazy(() => import('./pages/Home'));
@@ -31,6 +32,7 @@ const AppContent: React.FC = () => {
         <Suspense fallback={<LoadingIndicator />}>
           <Routes>
             <Route path="/declaration" element={<DeclarationOfUse />} />
+            <Route path="/setting" element={<Setting />} />
             <Route path="/login" element={<AuthPage />} />
             <Route path="/home" element={<Home />} />
             <Route path="/my-purchases" element={<MyPurchases />} />
