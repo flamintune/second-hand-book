@@ -28,7 +28,7 @@ const Sell: React.FC = () => {
       listTitle="正在出售"
       addButtonText="添加出售"
       books={sellingBooks}
-      addButtonLink=""
+      addButtonLink="/add-product?mode=sell"
     />
   );
 };

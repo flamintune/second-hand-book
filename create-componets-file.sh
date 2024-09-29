@@ -1,16 +1,17 @@
 #!/bin/bash
 
-# Define the directory where the components will be created
-# COMPONENT_DIR="src/pages"
-COMPONENT_DIR="src/components"
+# Check if the correct number of arguments is provided
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $0 <directory_path> <component_name>"
+    exit 1
+fi
+
+# Get directory path and component name from command line arguments
+COMPONENT_DIR="$1"
+COMPONENT_NAME="$2"
 
 # Create the directory if it doesn't exist
-mkdir -p $COMPONENT_DIR
-
-# Array of component names
-# COMPONENTS=("Home" "MyPurchases" "Sell" "Profile")
-# COMPONENTS=("DeclarationOfUse")
-COMPONENTS=("Setting")
+mkdir -p "$COMPONENT_DIR"
 
 # Function to create a component file
 create_component() {
@@ -27,7 +28,7 @@ const $name: React.FC = () => {
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold">${name}</h1>
-      {/* Add content for the ${name} page */}
+      {/* Add content for the ${name} component */}
     </div>
   );
 };
@@ -38,9 +39,7 @@ EOL
     echo "$name component created at $file_path"
 }
 
-# Create each component
-for component in "${COMPONENTS[@]}"; do
-    create_component "$component"
-done
+# Create the component
+create_component "$COMPONENT_NAME"
 
-echo "All components have been created successfully!"
+echo "Component has been created successfully!"

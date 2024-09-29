@@ -36,7 +36,7 @@ const MyPurchases: React.FC = () => {
       listTitle="正在求购"
       addButtonText="添加求购"
       books={wantedBooks}
-      addButtonLink=""
+      addButtonLink="/add-product?mode=buy"
     />
   );
 };

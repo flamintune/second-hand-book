@@ -5,6 +5,7 @@ import { setRootFontSize } from './utils/viewport';
 import AuthPage from './pages/AuthPage';
 import DeclarationOfUse from './pages/DeclarationOfUse';
 import Setting from './pages/Setting';
+import AddProduct from './pages/AddProduct';
 
 // 懒加载页面组件
 const Home = lazy(() => import('./pages/Home'));
@@ -33,6 +34,7 @@ const AppContent: React.FC = () => {
           <Routes>
             <Route path="/declaration" element={<DeclarationOfUse />} />
             <Route path="/setting" element={<Setting />} />
+            <Route path="/add-product" element={<AddProduct />} />
             <Route path="/login" element={<AuthPage />} />
             <Route path="/home" element={<Home />} />
             <Route path="/my-purchases" element={<MyPurchases />} />

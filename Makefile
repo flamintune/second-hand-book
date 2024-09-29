@@ -34,8 +34,20 @@ help:
 	@echo "  make preview  - 预览构建后的项目"
 	@echo "  make help     - 显示此帮助信息"
 
-create:
-	sh create-componets-file.sh
+components:
+	@if [ -z "$(n)" ]; then \
+		echo "Usage: make components name=<component_name>"; \
+		exit 1; \
+	fi
+	sh create-componets-file.sh src/components $(n)
+
+pages:
+	@if [ -z "$(n)" ]; then \
+		echo "Usage: make pages name=<page_name>"; \
+		exit 1; \
+	fi
+	sh create-componets-file.sh src/pages $(n)
+
 
 .PHONY: install dev build lint preview help
 
