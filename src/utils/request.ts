@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../constants/api';
-import { executeRecaptcha } from './recaptcha';
+// import { executeRecaptcha } from './recaptcha';
 
 const request = axios.create({
     baseURL: API_BASE_URL,
@@ -37,11 +37,16 @@ request.interceptors.request.use(
 // 响应拦截器
 request.interceptors.response.use(
     (response) => {
-        return response.data as any;
+        return response.data;
     },
     (error) => {
         return Promise.reject(error);
     }
 );
 
-export default request; 
+export default request as {
+    get<T>(url: string, config?: any): Promise<T>;
+    post<T>(url: string, data?: any, config?: any): Promise<T>;
+    put<T>(url: string, data?: any, config?: any): Promise<T>;
+    delete<T>(url: string, config?: any): Promise<T>;
+}; 

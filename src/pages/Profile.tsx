@@ -1,11 +1,14 @@
-// src/components/Profile.tsx
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { GearIcon } from "@radix-ui/react-icons";
 import * as Select from "@radix-ui/react-select";
-import { ChevronDownIcon, ChevronUpIcon, MagnifyingGlassIcon, Cross2Icon } from "@radix-ui/react-icons";
+import {
+  ChevronDownIcon,
+  Cross2Icon,
+  MagnifyingGlassIcon,
+} from "@radix-ui/react-icons";
 import * as Label from "@radix-ui/react-label";
 import { Link } from "react-router-dom";
-import { User, userApi, type Major } from "../api/user";
+import { type Major, UpdateUserRequest, User, userApi } from "../api/user";
 import { MAJORS } from "../constants/majors";
 import * as Dialog from "@radix-ui/react-dialog";
 
@@ -24,7 +27,6 @@ const Profile: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [majorSearch, setMajorSearch] = useState("");
-  const [open, setOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedMajor, setSelectedMajor] = useState<Major | null>(null);
 
@@ -38,7 +40,7 @@ const Profile: React.FC = () => {
 
   // 直接使用 MAJORS 进行过滤
   const filteredMajors = useMemo(() => {
-    return MAJORS.filter(major =>
+    return MAJORS.filter((major) =>
       major.name.toLowerCase().includes(majorSearch.toLowerCase())
     );
   }, [majorSearch]);
@@ -157,8 +159,7 @@ const Profile: React.FC = () => {
         <p className="text-sm text-gray-500">
           {user.grade
             ? GRADE_MAP[user.grade as keyof typeof GRADE_MAP]
-            : "未设置年级"} |{" "}
-          {getCurrentMajorName || "未设置专业"}
+            : "未设置年级"} | {getCurrentMajorName || "未设置专业"}
         </p>
         <div className="mt-2 text-sm text-gray-500">
           <p>{user.phone_number_with_mask}</p>
@@ -277,27 +278,30 @@ const Profile: React.FC = () => {
                 </div>
 
                 <div className="overflow-y-auto h-[calc(100%-120px)]">
-                  {filteredMajors.length > 0 ? (
-                    <div className="space-y-1">
-                      {filteredMajors.map((major) => (
-                        <button
-                          key={major.name}
-                          className={`w-full px-4 py-3 text-left text-sm rounded-md transition-colors
-                            ${selectedMajor?.national_name === major.name
-                              ? 'bg-indigo-50 text-indigo-600' 
-                              : 'text-gray-700 hover:bg-gray-50'
+                  {filteredMajors.length > 0
+                    ? (
+                      <div className="space-y-1">
+                        {filteredMajors.map((major) => (
+                          <button
+                            key={major.name}
+                            className={`w-full px-4 py-3 text-left text-sm rounded-md transition-colors
+                            ${
+                              selectedMajor?.national_name === major.name
+                                ? "bg-indigo-50 text-indigo-600"
+                                : "text-gray-700 hover:bg-gray-50"
                             }`}
-                          onClick={() => handleMajorSelect(major.name)}
-                        >
-                          {major.name}
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center text-sm text-gray-500 py-4">
-                      未找到匹配的专业
-                    </div>
-                  )}
+                            onClick={() => handleMajorSelect(major.name)}
+                          >
+                            {major.name}
+                          </button>
+                        ))}
+                      </div>
+                    )
+                    : (
+                      <div className="text-center text-sm text-gray-500 py-4">
+                        未找到匹配的专业
+                      </div>
+                    )}
                 </div>
               </Dialog.Content>
             </Dialog.Portal>
@@ -309,9 +313,9 @@ const Profile: React.FC = () => {
             设置联系方式类型
           </Label.Root>
           <Select.Root
-            value={user.connection_type || ""}
+            value={user.connection_type?.toString() || ""}
             onValueChange={(value) =>
-              handleSelectChange("connection_type", value)}
+              handleSelectChange("connection_type", parseInt(value))}
           >
             <Select.Trigger className="inline-flex items-center justify-between w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
               <Select.Value placeholder="选择联系方式类型" />
@@ -326,7 +330,7 @@ const Profile: React.FC = () => {
                   {connectionTypeOptions.map((type, index) => (
                     <Select.Item
                       key={type}
-                      value={index + 1}
+                      value={(index + 1).toString()}
                       className="relative flex items-center h-[25px] px-[25px] text-[13px] leading-none text-gray-700 rounded-[3px] hover:bg-gray-100 focus:bg-gray-100 focus:outline-none select-none"
                     >
                       <Select.ItemText>{type}</Select.ItemText>

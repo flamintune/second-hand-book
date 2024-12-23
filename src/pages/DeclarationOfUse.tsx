@@ -1,6 +1,6 @@
 // src/components/DeclarationOfUse.tsx
 import React from 'react';
-import BackButton from '../components/BackButton';
+// import BackButton from '../components/BackButton';
 
 const DeclarationOfUse: React.FC = () => {
 
