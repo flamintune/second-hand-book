@@ -2,12 +2,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { GearIcon } from "@radix-ui/react-icons";
 import * as Select from "@radix-ui/react-select";
-import { ChevronDownIcon, ChevronUpIcon } from "@radix-ui/react-icons";
+import { ChevronDownIcon, ChevronUpIcon, MagnifyingGlassIcon, Cross2Icon } from "@radix-ui/react-icons";
 import * as Label from "@radix-ui/react-label";
 import { Link } from "react-router-dom";
-import { User, userApi } from "../api/user";
-import { useDebounce } from "../hooks/useDebounce";
-import { debounce } from "lodash";
+import { User, userApi, type Major } from "../api/user";
+import { MAJORS } from "../constants/majors";
+import * as Dialog from "@radix-ui/react-dialog";
 
 const connectionTypeOptions = ["QQ", "微信", "电话"];
 
@@ -21,9 +21,12 @@ const GRADE_MAP = {
 
 const Profile: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [majors, setMajors] = useState<Array<{ id: number; name: string }>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [majorSearch, setMajorSearch] = useState("");
+  const [open, setOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedMajor, setSelectedMajor] = useState<Major | null>(null);
 
   // 修改年级选项
   const gradeOptions = [
@@ -33,12 +36,25 @@ const Profile: React.FC = () => {
     { value: "4", label: "大四" },
   ];
 
+  // 直接使用 MAJORS 进行过滤
+  const filteredMajors = useMemo(() => {
+    return MAJORS.filter(major =>
+      major.name.toLowerCase().includes(majorSearch.toLowerCase())
+    );
+  }, [majorSearch]);
+
+  // 获取当前专业名称的函数
+  const getCurrentMajorName = useMemo(() => {
+    if (!user?.major_id) return "";
+    return selectedMajor?.national_name || "";
+  }, [user?.major_id, selectedMajor]);
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         setIsLoading(true);
         setError("");
-        // 从 localStorage 获���用户 ID
+        // 从 localStorage 获取用户 ID
         const storedUser = localStorage.getItem("user");
         if (!storedUser) return;
 
@@ -81,7 +97,7 @@ const Profile: React.FC = () => {
       const updateData: UpdateUserRequest = {
         nickname: user.nickname,
         grade: user.grade,
-        majorId: user.majorId,
+        major_id: user.major_id,
         connection: user.connection,
         connection_type: user.connection_type,
         [field]: value,
@@ -92,6 +108,22 @@ const Profile: React.FC = () => {
       setError(err.response?.data?.error || "更新失败");
       // 更新失败时回滚到原始值
       setUser((prev) => prev);
+    }
+  };
+
+  // 处理专业选择
+  const handleMajorSelect = async (majorName: string) => {
+    try {
+      const response = await userApi.getMajorByName(majorName);
+      if (response.majors.length > 0) {
+        const major = response.majors[0];
+        setSelectedMajor(major);
+        handleSelectChange("major_id", major.id);
+      }
+      setMajorSearch("");
+      setDrawerOpen(false);
+    } catch (err) {
+      console.error("获取专业信息失败:", err);
     }
   };
 
@@ -126,7 +158,7 @@ const Profile: React.FC = () => {
           {user.grade
             ? GRADE_MAP[user.grade as keyof typeof GRADE_MAP]
             : "未设置年级"} |{" "}
-          {majors.find((m) => m.id === user.majorId)?.name || "未设置专业"}
+          {getCurrentMajorName || "未设置专业"}
         </p>
         <div className="mt-2 text-sm text-gray-500">
           <p>{user.phone_number_with_mask}</p>
@@ -209,40 +241,67 @@ const Profile: React.FC = () => {
           <Label.Root className="block text-sm font-medium text-gray-700 mb-1">
             设置专业
           </Label.Root>
-          <Select.Root
-            value={String(user.majorId || "")}
-            onValueChange={(value) =>
-              handleSelectChange("majorId", parseInt(value))}
-          >
-            <Select.Trigger className="inline-flex items-center justify-between w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-              <Select.Value placeholder="选择专业" />
-              <Select.Icon>
-                <ChevronDownIcon />
-              </Select.Icon>
-            </Select.Trigger>
+          <Dialog.Root open={drawerOpen} onOpenChange={setDrawerOpen}>
+            <Dialog.Trigger asChild>
+              <button className="w-full flex items-center justify-between px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <span className="truncate">
+                  {getCurrentMajorName || "选择专业"}
+                </span>
+                <ChevronDownIcon className="h-4 w-4 text-gray-400" />
+              </button>
+            </Dialog.Trigger>
 
-            <Select.Portal>
-              <Select.Content className="overflow-hidden bg-white border border-gray-300 rounded-md shadow-lg">
-                <Select.ScrollUpButton className="flex items-center justify-center h-[25px] bg-white text-gray-700 cursor-default">
-                  <ChevronUpIcon />
-                </Select.ScrollUpButton>
-                <Select.Viewport className="p-1">
-                  {majors.map((major) => (
-                    <Select.Item
-                      key={major.id}
-                      value={String(major.id)}
-                      className="relative flex items-center h-[25px] px-[25px] text-[13px] leading-none text-gray-700 rounded-[3px] hover:bg-gray-100 focus:bg-gray-100 focus:outline-none select-none"
-                    >
-                      <Select.ItemText>{major.name}</Select.ItemText>
-                    </Select.Item>
-                  ))}
-                </Select.Viewport>
-                <Select.ScrollDownButton className="flex items-center justify-center h-[25px] bg-white text-gray-700 cursor-default">
-                  <ChevronDownIcon />
-                </Select.ScrollDownButton>
-              </Select.Content>
-            </Select.Portal>
-          </Select.Root>
+            <Dialog.Portal>
+              <Dialog.Overlay className="fixed inset-0 bg-black/30" />
+              <Dialog.Content className="fixed bottom-0 left-0 right-0 h-[80vh] bg-white rounded-t-xl p-4 shadow-xl focus:outline-none">
+                <div className="flex items-center justify-between mb-4">
+                  <Dialog.Title className="text-lg font-medium">
+                    选择专业
+                  </Dialog.Title>
+                  <Dialog.Close className="rounded-full p-1 hover:bg-gray-100">
+                    <Cross2Icon className="h-4 w-4" />
+                  </Dialog.Close>
+                </div>
+
+                <div className="relative mb-4">
+                  <div className="absolute inset-y-0 left-3 flex items-center">
+                    <MagnifyingGlassIcon className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    className="w-full pl-10 pr-4 py-2 text-sm text-gray-700 bg-gray-100 border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-transparent"
+                    placeholder="搜索专业..."
+                    value={majorSearch}
+                    onChange={(e) => setMajorSearch(e.target.value)}
+                  />
+                </div>
+
+                <div className="overflow-y-auto h-[calc(100%-120px)]">
+                  {filteredMajors.length > 0 ? (
+                    <div className="space-y-1">
+                      {filteredMajors.map((major) => (
+                        <button
+                          key={major.name}
+                          className={`w-full px-4 py-3 text-left text-sm rounded-md transition-colors
+                            ${selectedMajor?.national_name === major.name
+                              ? 'bg-indigo-50 text-indigo-600' 
+                              : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                          onClick={() => handleMajorSelect(major.name)}
+                        >
+                          {major.name}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center text-sm text-gray-500 py-4">
+                      未找到匹配的专业
+                    </div>
+                  )}
+                </div>
+              </Dialog.Content>
+            </Dialog.Portal>
+          </Dialog.Root>
         </div>
 
         <div>
