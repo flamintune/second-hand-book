@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import BackButton from "../components/BackButton";
-import { authApi } from "../api/auth";
+import { authApi, User, LoginResponse } from "../api/auth";
 
 const AuthPage: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -57,13 +57,13 @@ const AuthPage: React.FC = () => {
 
     try {
       setIsLoading(true);
-      const response = await authApi.loginOrRegister({
+      const response: LoginResponse = await authApi.loginOrRegister({
         phone: phoneNumber,
         code: verificationCode,
-      });
+      }) as any;
       
-      if (response.data?.user) {
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+      if (response.user) {
+        localStorage.setItem('token', response.user.token);
         navigate('/home');
       } else {
         setPhoneError("登录失败：未收到有效的用户信息");

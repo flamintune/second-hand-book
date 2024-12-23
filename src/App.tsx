@@ -23,9 +23,27 @@ const LoadingIndicator = () => (
 
 setRootFontSize();
 
+// 受保护的路由组件
+const ProtectedRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+  return element;
+};
+
+// 公共路由组件（登录页面专用）
+const PublicRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    return <Navigate to="/home" replace />;
+  }
+  return element;
+};
+
 const AppContent: React.FC = () => {
   const location = useLocation();
-  const tabBarPages = ["/home","/my-purchases","/sell","/profile"]
+  const tabBarPages = ["/home","/my-purchases","/sell","/profile"];
   const showTabBar = tabBarPages.includes(location.pathname);
 
   return (
@@ -33,15 +51,20 @@ const AppContent: React.FC = () => {
       <main className="flex-grow">
         <Suspense fallback={<LoadingIndicator />}>
           <Routes>
+            {/* 公共路由 */}
             <Route path="/declaration" element={<DeclarationOfUse />} />
-            <Route path="/setting" element={<Setting />} />
-            <Route path="/add-product" element={<AddProduct />} />
-            <Route path="/book-search" element={<BookSearch />} />
-            <Route path="/login" element={<AuthPage />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/my-purchases" element={<MyPurchases />} />
-            <Route path="/sell" element={<Sell />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route path="/login" element={<PublicRoute element={<AuthPage />} />} />
+            
+            {/* 受保护的路由 */}
+            <Route path="/setting" element={<ProtectedRoute element={<Setting />} />} />
+            <Route path="/add-product" element={<ProtectedRoute element={<AddProduct />} />} />
+            <Route path="/book-search" element={<ProtectedRoute element={<BookSearch />} />} />
+            <Route path="/home" element={<ProtectedRoute element={<Home />} />} />
+            <Route path="/my-purchases" element={<ProtectedRoute element={<MyPurchases />} />} />
+            <Route path="/sell" element={<ProtectedRoute element={<Sell />} />} />
+            <Route path="/profile" element={<ProtectedRoute element={<Profile />} />} />
+            
+            {/* 默认路由 */}
             <Route path="/*" element={<Navigate to="/login" replace />} />
           </Routes>
         </Suspense>
