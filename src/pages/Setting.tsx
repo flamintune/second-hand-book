@@ -1,11 +1,15 @@
 // src/components/Setting.tsx
 import React from "react";
 import BackButton from "../components/BackButton";
+import { useNavigate } from "react-router-dom";
 
 const Setting: React.FC = () => {
+  const navigate = useNavigate();
+
   const handleLogout = () => {
     // 实现退出登录的逻辑
-    console.log("退出登录");
+    localStorage.removeItem("token");
+    navigate("/");
   };
 
   const handleDeleteAccount = () => {
@@ -38,8 +42,9 @@ const Setting: React.FC = () => {
 
         <div className="bg-white rounded-lg shadow-sm overflow-hidden mt-auto">
           <button 
+            disabled={true}
             onClick={handleDeleteAccount}
-            className="w-full py-3 px-4 text-left text-red-500 font-medium border-b border-gray-200 hover:bg-red-50 transition duration-200"
+            className="w-full py-3 px-4 text-left text-red-500 font-medium border-b border-gray-200 hover:bg-red-50 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
           >
             注销账号
           </button>
