@@ -1,28 +1,96 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import BackButton from "../components/BackButton";
+import { authApi } from "../api/auth";
 
 const AuthPage: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [isAgreed, setIsAgreed] = useState(false);
   const [phoneError, setPhoneError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const navigate = useNavigate();
 
-  const handleSendCode = () => {
-    // Validate phone number
+  useEffect(() => {
+    window.grecaptcha?.ready(() => {
+      console.log('ReCaptcha is ready');
+    });
+  }, []);
+
+  const handleSendCode = async () => {
     if (!/^1\d{10}$/.test(phoneNumber)) {
       setPhoneError("请输入正确的11位手机号码");
       return;
     }
     setPhoneError("");
-    // TODO: Implement sending verification code
-    console.log("Sending verification code to", phoneNumber);
+    
+    try {
+      setIsLoading(true);
+      await authApi.sendCode({ phone: phoneNumber });
+      setCountdown(60);
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (error: any) {
+      if (error.response) {
+        setPhoneError(error.response.data?.error || "发送验证码失败，请稍后重试");
+      } else {
+        setPhoneError("网络错误，请检查网络连接");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement login/registration logic
-    console.log("Submitting", { phoneNumber, verificationCode });
+    if (!isAgreed) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const response = await authApi.loginOrRegister({
+        phone: phoneNumber,
+        code: verificationCode,
+      });
+      
+      if (response.data?.user) {
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        navigate('/home');
+      } else {
+        setPhoneError("登录失败：未收到有效的用户信息");
+      }
+    } catch (error: any) {
+      if (error.response) {
+        switch (error.response.status) {
+          case 400:
+            setPhoneError("请求参数错误，请检查手机号和验证码");
+            break;
+          case 401:
+            setPhoneError("验证码错误或已过期");
+            break;
+          case 429:
+            setPhoneError("登录尝试次数过多，请稍后再试");
+            break;
+          default:
+            setPhoneError(error.response.data?.error || "登录失败，请稍后重试");
+        }
+      } else if (error.request) {
+        setPhoneError("网络错误，请检查网络连接");
+      } else {
+        setPhoneError("登录失败，请稍后重试");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -74,9 +142,12 @@ const AuthPage: React.FC = () => {
             <button
               type="button"
               onClick={handleSendCode}
-              className="bg-gray-200 text-gray-700 px-2 border border-gray-300 absolute right-2 top-[50%] translate-y-[-50%]"
+              disabled={countdown > 0 || isLoading}
+              className={`bg-gray-200 text-gray-700 px-2 border border-gray-300 absolute right-2 top-[50%] translate-y-[-50%] ${
+                (countdown > 0 || isLoading) ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
             >
-              点击发送验证码
+              {countdown > 0 ? `${countdown}秒后重试` : '点击发送验证码'}
             </button>
           </div>
           <div className="flex items-center mb-16">
@@ -96,10 +167,10 @@ const AuthPage: React.FC = () => {
           </div>
           <button
             type="submit"
-            className="w-full bg-black text-white p-3 rounded-md font-medium"
-            disabled={!isAgreed}
+            className="w-full bg-black text-white p-3 rounded-md font-medium disabled:opacity-50"
+            disabled={!isAgreed || isLoading}
           >
-            登录/自动注册
+            {isLoading ? '处理中...' : '登录/自动注册'}
           </button>
         </form>
       </div>
