@@ -63,6 +63,7 @@ const AuthPage: React.FC = () => {
       }) as any;
       
       if (response.user) {
+        localStorage.setItem('user', JSON.stringify(response.user));
         localStorage.setItem('token', response.user.token);
         navigate('/home');
       } else {
