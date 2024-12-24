@@ -5,10 +5,11 @@ interface User {
     phone: string;
     nickname?: string;
     grade?: string;
-    major_id?: number;
+    major?: string;
     connection?: string;
     connection_type?: number;
     phone_number_with_mask: string;
+    major_id?: number;
 }
 
 interface UpdateUserRequest {

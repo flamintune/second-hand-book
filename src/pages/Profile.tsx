@@ -45,11 +45,15 @@ const Profile: React.FC = () => {
     );
   }, [majorSearch]);
 
-  // 获取当前专业名称的函数
-  const getCurrentMajorName = useMemo(() => {
-    if (!user?.major_id) return "";
-    return selectedMajor?.national_name || "";
-  }, [user?.major_id, selectedMajor]);
+  // 当获取到用户数据时，同步更新 selectedMajor
+  useEffect(() => {
+    if (user?.major && user?.major_id) {
+      setSelectedMajor({
+        id: user.major_id,
+        national_name: user.major
+      });
+    }
+  }, [user?.major, user?.major_id]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -120,12 +124,26 @@ const Profile: React.FC = () => {
       if (response.majors.length > 0) {
         const major = response.majors[0];
         setSelectedMajor(major);
-        handleSelectChange("major_id", major.id);
+        
+        // 直接更新本地 user 状态
+        setUser(prev => prev ? {
+          ...prev,
+          major: major.national_name,
+          major_id: major.id
+        } : null);
+
+        // 发送更新请求到服务器
+        await userApi.updateUser(user!.id, {
+          ...user!,
+          major_id: major.id
+        });
       }
       setMajorSearch("");
       setDrawerOpen(false);
     } catch (err) {
       console.error("获取专业信息失败:", err);
+      // 如果失败了，可以考虑回滚状态
+      setUser(prev => prev);
     }
   };
 
@@ -159,7 +177,7 @@ const Profile: React.FC = () => {
         <p className="text-sm text-gray-500">
           {user.grade
             ? GRADE_MAP[user.grade as keyof typeof GRADE_MAP]
-            : "未设置年级"} | {getCurrentMajorName || "未设置专业"}
+            : "未设置年级"} | {user.major || "未设置专业"}
         </p>
         <div className="mt-2 text-sm text-gray-500">
           <p>{user.phone_number_with_mask}</p>
@@ -246,7 +264,7 @@ const Profile: React.FC = () => {
             <Dialog.Trigger asChild>
               <button className="w-full flex items-center justify-between px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                 <span className="truncate">
-                  {getCurrentMajorName || "选择专业"}
+                  {user.major || "选择专业"}
                 </span>
                 <ChevronDownIcon className="h-4 w-4 text-gray-400" />
               </button>
