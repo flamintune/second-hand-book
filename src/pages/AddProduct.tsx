@@ -116,7 +116,7 @@ const AddProduct: React.FC = () => {
       setShowToast(true);
       
       setTimeout(() => {
-        navigate(mode === "buy" ? "/my-purchase" : "/sell");
+        navigate(mode === "buy" ? "/my-purchases" : "/sell");
       }, 1000);
     } catch (err) {
       setToastMessage("发布失败，请稍后重试");
