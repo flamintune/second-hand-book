@@ -1,14 +1,45 @@
 // src/pages/Home.tsx
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import * as Tabs from '@radix-ui/react-tabs';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import Icon from '../components/Icon';
+import { userApi } from '../api/user';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('selling');
+  const [showProfileAlert, setShowProfileAlert] = useState(false);
+
+  // 检查用户信息是否完善
+  useEffect(() => {
+    const checkUserProfile = async () => {
+      try {
+        const storedUser = localStorage.getItem("user");
+        if (!storedUser) return;
+
+        const userId = JSON.parse(storedUser).id;
+        const response = await userApi.getUser(userId);
+        const user = response.user;
+
+        // 检查必要字段是否已填写
+        const isProfileComplete = !!(
+          user.nickname &&
+          user.grade &&
+          user.major &&
+          user.connection &&
+          user.connection_type
+        );
+
+        setShowProfileAlert(!isProfileComplete);
+      } catch (err) {
+        console.error('获取用户信息失败:', err);
+      }
+    };
+
+    checkUserProfile();
+  }, []);
 
   const bookListings = [
     { id: 1, title: '猫咪集美学', image: 'path_to_image' },
@@ -27,10 +58,17 @@ const Home: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-[#FEE6E6] p-2 flex justify-between items-center">
-        <p className="text-black-500 ml-4"><span className='mr-2'>!</span> 请完善个人信息</p>
-      </header>
+      {/* Header - 只在需要时显示 */}
+      {showProfileAlert && (
+        <header className="bg-[#FEE6E6] p-2 flex justify-between items-center">
+          <p className="text-black-500 ml-4">
+            <span className='mr-2'>!</span> 
+            <Link to="/profile" className="hover:underline">
+              请完善个人信息
+            </Link>
+          </p>
+        </header>
+      )}
 
       {/* Tab navigation */}
       <Tabs.Root 
