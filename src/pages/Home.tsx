@@ -112,7 +112,7 @@ const Home: React.FC = () => {
         page_size: PAGE_SIZE,
       };
 
-      // 添加价格区间
+      // ��加价格区间
       if (priceRange.min) query.price_min = Number(priceRange.min);
       if (priceRange.max) query.price_max = Number(priceRange.max);
 
@@ -171,9 +171,20 @@ const Home: React.FC = () => {
       setContactLoading(true);
       const response = await postApi.getPosterContact(postId);
       
-      // 获取联系方式成功，显示联系信息
       const contactInfo = response.data;
-      setToastMessage(`联系方式：${getConnectionText(contactInfo.connection_type, contactInfo.connection)}`);
+      const contactValue = contactInfo.connection;
+      
+      // 复制到剪贴板
+      await navigator.clipboard.writeText(contactValue);
+      
+      // 获取联系方式类型文本
+      const typeText = {
+        1: 'QQ',
+        2: '微信',
+        3: '手机',
+      }[contactInfo.connection_type] || '未知';
+      
+      setToastMessage(`${typeText}号已复制到剪贴板`);
       setShowToast(true);
     } catch (err) {
       setToastMessage("获取联系方式失败，请稍后再试");
@@ -457,14 +468,16 @@ const Home: React.FC = () => {
 
       <Toast.Provider swipeDirection="right">
         <Toast.Root
-          className="bg-white rounded-lg shadow-lg p-4 flex items-center justify-between"
+          className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
+                     bg-black bg-opacity-75 text-white rounded-lg shadow-lg p-4 
+                     flex items-center justify-center min-w-[200px]"
           open={showToast}
           onOpenChange={setShowToast}
           duration={2000}
         >
-          <Toast.Title>{toastMessage}</Toast.Title>
+          <Toast.Title className="text-center">{toastMessage}</Toast.Title>
         </Toast.Root>
-        <Toast.Viewport className="fixed bottom-0 right-0 flex flex-col p-6 gap-2 w-96 max-w-[100vw] m-0 list-none z-50" />
+        <Toast.Viewport className="fixed inset-0 flex items-center justify-center pointer-events-none" />
       </Toast.Provider>
     </div>
   );
