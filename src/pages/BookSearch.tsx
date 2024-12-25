@@ -39,7 +39,7 @@ const BookSearch: React.FC = () => {
       const response = await postApi.getPosts({ 
         open_only: true,
         is_purchase: activeTab === 'buying',
-        book_name: searchTerm.trim()  // 添加书名搜索参数
+        // book_name: searchTerm.trim()  // 添加书名搜索参数
       });
       
       if (!response.data) {

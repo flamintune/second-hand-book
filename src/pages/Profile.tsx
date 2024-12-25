@@ -72,7 +72,7 @@ const Profile: React.FC = () => {
         // 设置默认值
         const userData = userResponse.user;
         if (!userData.nickname) {
-          userData.nickname = `交友${userData.id}号`;
+          userData.nickname = `交兵${userData.id}号`;
         }
         if (!userData.grade) {
           userData.grade = "1"; // 默认为大一

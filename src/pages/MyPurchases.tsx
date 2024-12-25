@@ -5,6 +5,7 @@ import { postApi, type Post } from "../api/post";
 import { bookApi, type Book } from "../api/book";
 import * as Toast from "@radix-ui/react-toast";
 import { useUser } from "../contexts/UserContext";
+import EditPostDrawer from '../components/EditPostDrawer';
 
 interface PostWithBook extends Post {
   book?: Book;
@@ -16,6 +17,7 @@ const MyPurchases: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [editingPost, setEditingPost] = useState<PostWithBook | null>(null);
 
   useEffect(() => {
     fetchPurchases();
@@ -76,7 +78,7 @@ const MyPurchases: React.FC = () => {
     price: post.price,
     notes: post.notes,
     lastRefreshAt: post.last_refresh_at,
-    status: post.post_status === 0 ? 'open' : 'closed' as const,
+    status: post.post_status === 0 ? 'open' : 'closed',
     viewCount: post.poster_viewed_times,
     isPurchase: post.is_purchase,
   }));
@@ -98,6 +100,32 @@ const MyPurchases: React.FC = () => {
     }
   };
 
+  const handleEdit = (book: any) => {
+    const post = posts.find(p => p.id.toString() === book.id);
+    if (post) {
+      setEditingPost(post);
+    }
+  };
+
+  const handleSaveEdit = async (price: number, notes: string) => {
+    try {
+      if (!editingPost) return;
+      
+      await postApi.updatePost(editingPost.id, {
+        price,
+        notes,
+      });
+
+      setToastMessage("修改成功");
+      setShowToast(true);
+      fetchPurchases(); // 刷新列表
+    } catch (err) {
+      setToastMessage("修改失败，请稍后再试");
+      setShowToast(true);
+      throw err;
+    }
+  };
+
   return (
     <>
       <BookListPage
@@ -109,6 +137,13 @@ const MyPurchases: React.FC = () => {
         isLoading={isLoading}
         onRefresh={fetchPurchases}
         onDelete={handleDelete}
+        onEdit={handleEdit}
+      />
+
+      <EditPostDrawer
+        post={editingPost}
+        onClose={() => setEditingPost(null)}
+        onSave={handleSaveEdit}
       />
 
       <Toast.Provider swipeDirection="right">

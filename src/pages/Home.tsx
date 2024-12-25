@@ -1,11 +1,9 @@
 // src/pages/Home.tsx
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import * as Tabs from '@radix-ui/react-tabs';
-import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
-import Icon from '../components/Icon';
 import { userApi } from '../api/user';
-import { postApi, type Post } from "../api/post";
+import { postApi, PostQuery, type Post } from "../api/post";
 import { bookApi, type Book } from "../api/book";
 import * as Toast from "@radix-ui/react-toast";
 import * as Dialog from '@radix-ui/react-dialog';
@@ -46,8 +44,7 @@ const EmptyState = ({ activeTab }: { activeTab: string }) => (
 );
 
 const Home: React.FC = () => {
-  const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState('');
+  // const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('selling');
   const [showProfileAlert, setShowProfileAlert] = useState(false);
   const [posts, setPosts] = useState<PostWithBook[]>([]);
@@ -91,18 +88,18 @@ const Home: React.FC = () => {
     fetchPosts();
   }, [activeTab]); // 当标签页切换时重新获取帖子
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchTerm.trim()) {
-      // 根据当前标签页和搜索词构建查询参数
-      const params = new URLSearchParams({
-        mode: activeTab,
-        query: searchTerm.trim(),
-        is_purchase: (activeTab === 'buying').toString()
-      });
-      navigate(`/book-search?${params.toString()}`);
-    }
-  };
+  // const handleSearch = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (searchTerm.trim()) {
+  //     // 根据当前标签页和搜索词构建查询参数
+  //     const params = new URLSearchParams({
+  //       mode: activeTab,
+  //       query: searchTerm.trim(),
+  //       is_purchase: (activeTab === 'buying').toString()
+  //     });
+  //     navigate(`/book-search?${params.toString()}`);
+  //   }
+  // };
 
   const fetchPosts = async (page = currentPage) => {
     try {

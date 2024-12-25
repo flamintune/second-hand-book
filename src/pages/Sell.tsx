@@ -5,6 +5,7 @@ import { postApi, type Post } from "../api/post";
 import { bookApi, type Book } from "../api/book";
 import * as Toast from "@radix-ui/react-toast";
 import { useUser } from "../contexts/UserContext";
+import EditPostDrawer from '../components/EditPostDrawer';
 
 interface PostWithBook extends Post {
   book?: Book;
@@ -16,6 +17,7 @@ const Sell: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [editingPost, setEditingPost] = useState<PostWithBook | null>(null);
 
   useEffect(() => {
     fetchSellingPosts();
@@ -86,6 +88,34 @@ const Sell: React.FC = () => {
     }
   };
 
+  // 处理保存编辑
+  const handleSaveEdit = async (price: number, notes: string) => {
+    try {
+      if (!editingPost) return;
+      
+      await postApi.updatePost(editingPost.id, {
+        price,
+        notes,
+      });
+
+      setToastMessage("修改成功");
+      setShowToast(true);
+      fetchSellingPosts(); // 刷新列表
+    } catch (err) {
+      setToastMessage("修改失败，请稍后再试");
+      setShowToast(true);
+      throw err; // 让 EditPostDrawer 知道保存失败
+    }
+  };
+
+  const handleEdit = (book: any) => {
+    // 找到对应的 post
+    const post = posts.find(p => p.id.toString() === book.id);
+    if (post) {
+      setEditingPost(post);
+    }
+  };
+
   return (
     <>
       <BookListPage
@@ -97,6 +127,7 @@ const Sell: React.FC = () => {
         isLoading={isLoading}
         onRefresh={fetchSellingPosts}
         onDelete={handleDelete}
+        onEdit={handleEdit}
       />
 
       <Toast.Provider swipeDirection="right">
@@ -110,6 +141,12 @@ const Sell: React.FC = () => {
         </Toast.Root>
         <Toast.Viewport className="fixed bottom-0 right-0 flex flex-col p-6 gap-2 w-96 max-w-[100vw] m-0 list-none z-50" />
       </Toast.Provider>
+
+      <EditPostDrawer
+        post={editingPost}
+        onClose={() => setEditingPost(null)}
+        onSave={handleSaveEdit}
+      />
     </>
   );
 };
