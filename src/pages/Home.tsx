@@ -194,20 +194,6 @@ const Home: React.FC = () => {
     }
   };
 
-  // 获取联系方式文本
-  const getConnectionText = (type: number, connection: string) => {
-    switch (type) {
-      case 1:
-        return `QQ：${connection}`;
-      case 2:
-        return `微信：${connection}`;
-      case 3:
-        return `手机：${connection}`;
-      default:
-        return connection;
-    }
-  };
-
   // 修改筛选条件组件
   const FilterSection = () => (
     <div className="bg-white border-b">
