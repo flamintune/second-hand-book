@@ -59,6 +59,7 @@ const Home: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 12;
   const [showFilter, setShowFilter] = useState(false);
+  const [contactLoading, setContactLoading] = useState(false);
 
   // 检查用户信息是否完善
   useEffect(() => {
@@ -165,6 +166,38 @@ const Home: React.FC = () => {
   // 获取操作按钮文本
   const getActionButtonText = (isPurchase: boolean) => {
     return isPurchase ? '联系买家' : '联系卖家';
+  };
+
+  // 处理联系买家/卖家
+  const handleContact = async (postId: number) => {
+    try {
+      setContactLoading(true);
+      const response = await postApi.getPosterContact(postId);
+      
+      // 获取联系方式成功，显示联系信息
+      const contactInfo = response.data;
+      setToastMessage(`联系方式：${getConnectionText(contactInfo.connection_type, contactInfo.connection)}`);
+      setShowToast(true);
+    } catch (err) {
+      setToastMessage("获取联系方式失败，请稍后再试");
+      setShowToast(true);
+    } finally {
+      setContactLoading(false);
+    }
+  };
+
+  // 获取联系方式文本
+  const getConnectionText = (type: number, connection: string) => {
+    switch (type) {
+      case 1:
+        return `QQ：${connection}`;
+      case 2:
+        return `微信：${connection}`;
+      case 3:
+        return `手机：${connection}`;
+      default:
+        return connection;
+    }
   };
 
   // 修改筛选条件组件
@@ -404,8 +437,12 @@ const Home: React.FC = () => {
                         <span className="mx-2">|</span>
                         <span>浏览 {post.poster_viewed_times} 次</span>
                       </div>
-                      <button className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600">
-                        {getActionButtonText(post.is_purchase)}
+                      <button 
+                        onClick={() => handleContact(post.id)}
+                        disabled={contactLoading}
+                        className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-400"
+                      >
+                        {contactLoading ? '获取中...' : getActionButtonText(post.is_purchase)}
                       </button>
                     </div>
                   </div>

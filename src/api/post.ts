@@ -53,11 +53,15 @@ export const postApi = {
     return request.get<{ data: Post }>(`/posts/${id}`);
   },
 
-  // 获取帖子发布者联系方式
+  // 获取帖子联系方式
   getPosterContact: (postId: number) => {
-    return request.get<{ data: { connection: string; connection_type: number } }>(
-      `/posts/${postId}?contact=true`
-    );
+    return request.get<{ data: { 
+      connection: string;
+      connection_type: number;
+      nickname: string;
+      grade?: string;
+      major?: string;
+    } }>(`/posts/${postId}?contact=true`);
   },
 
   // 创建新帖子
@@ -89,6 +93,28 @@ export const postApi = {
         is_purchase: isPurchase,
       }
     });
+  },
+
+  // 获取帖子联系方式（简单版，不需要验证码）
+  getPosterContactSimple: (postId: number) => {
+    return request.get<{ data: { 
+      connection: string;
+      connection_type: number;
+      nickname: string;
+      grade?: string;
+      major?: string;
+    } }>(`/posts/${postId}?contact=true`);
+  },
+
+  // 获取帖子联系方式（需要验证码）
+  getPosterContactWithCaptcha: (postId: number) => {
+    return request.get<{ data: {
+      connection: string;
+      connection_type: number;
+      nickname: string;
+      grade?: string;
+      major?: string;
+    } }>(`/posts/${postId}/contact`);
   },
 };
 
