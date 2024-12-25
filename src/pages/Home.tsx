@@ -8,10 +8,42 @@ import { userApi } from '../api/user';
 import { postApi, type Post } from "../api/post";
 import { bookApi, type Book } from "../api/book";
 import * as Toast from "@radix-ui/react-toast";
+import * as Dialog from '@radix-ui/react-dialog';
+import { Cross2Icon, SliderIcon } from '@radix-ui/react-icons';
 
 interface PostWithBook extends Post {
   book?: Book;
 }
+
+// 添加空状态组件
+const EmptyState = ({ activeTab }: { activeTab: string }) => (
+  <div className="flex flex-col items-center justify-center py-12">
+    <div className="w-24 h-24 mb-4 text-gray-300">
+      {/* 可以替换成其他图标或图片 */}
+      <svg
+        className="w-full h-full"
+        fill="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-4h2v2h-2v-2zm0-2h2V7h-2v7z" />
+      </svg>
+    </div>
+    <p className="text-gray-500 text-lg mb-2">
+      暂无{activeTab === 'selling' ? '出售' : '求购'}信息
+    </p>
+    <p className="text-gray-400 text-sm mb-4">
+      {activeTab === 'selling' 
+        ? '还没有人发布出售信息' 
+        : '还没有人发布求购信息'}
+    </p>
+    <Link
+      to={`/add-product?mode=${activeTab === 'selling' ? 'sell' : 'buy'}`}
+      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+    >
+      {activeTab === 'selling' ? '发布出售' : '发布求购'}
+    </Link>
+  </div>
+);
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -22,6 +54,11 @@ const Home: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
+  const [sortBy, setSortBy] = useState<'latest' | 'price'>('latest');
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 12;
+  const [showFilter, setShowFilter] = useState(false);
 
   // 检查用户信息是否完善
   useEffect(() => {
@@ -56,18 +93,37 @@ const Home: React.FC = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      navigate(`/book-search?mode=${activeTab}&query=${encodeURIComponent(searchTerm)}`);
+      // 根据当前标签页和搜索词构建查询参数
+      const params = new URLSearchParams({
+        mode: activeTab,
+        query: searchTerm.trim(),
+        is_purchase: (activeTab === 'buying').toString()
+      });
+      navigate(`/book-search?${params.toString()}`);
     }
   };
 
-  const fetchPosts = async () => {
+  const fetchPosts = async (page = currentPage) => {
     try {
       setIsLoading(true);
-      // 根据当前标签页获取对应类型的帖子
-      const response = await postApi.getPosts({ 
+      
+      const query: PostQuery = {
         open_only: true,
-        is_purchase: activeTab === 'buying'
-      });
+        is_purchase: activeTab === 'buying',
+        page_index: page,
+        page_size: PAGE_SIZE,
+      };
+
+      // 添加价格区间
+      if (priceRange.min) query.price_min = Number(priceRange.min);
+      if (priceRange.max) query.price_max = Number(priceRange.max);
+
+      // 添加排序条件
+      if (sortBy === 'latest') {
+        query.last_refresh_after = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(); // 最近7天
+      }
+
+      const response = await postApi.getPosts(query);
       
       if (!response.data) {
         setPosts([]);
@@ -111,6 +167,159 @@ const Home: React.FC = () => {
     return isPurchase ? '联系买家' : '联系卖家';
   };
 
+  // 修改筛选条件组件
+  const FilterSection = () => (
+    <div className="bg-white border-b">
+      <div className="flex justify-between items-center px-4 py-2">
+        <div className="flex space-x-4">
+          <button
+            onClick={() => setShowFilter(true)}
+            className="flex items-center text-gray-600 text-sm"
+          >
+            <SliderIcon className="w-4 h-4 mr-1" />
+            筛选
+          </button>
+          <select
+            value={sortBy}
+            onChange={(e) => {
+              setSortBy(e.target.value as 'latest' | 'price');
+              setCurrentPage(1);
+              fetchPosts(1);
+            }}
+            className="text-sm text-gray-600 bg-transparent border-none outline-none"
+          >
+            <option value="latest">最新发布</option>
+            <option value="price">价格排序</option>
+          </select>
+        </div>
+      </div>
+
+      {/* 筛选弹窗 */}
+      <Dialog.Root open={showFilter} onOpenChange={setShowFilter}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 bg-black/30" />
+          <Dialog.Content className="fixed bottom-0 left-0 right-0 max-h-[80vh] overflow-y-auto bg-white rounded-t-2xl p-4 animate-slide-up">
+            <div className="flex justify-between items-center mb-6">
+              <Dialog.Title className="text-lg font-semibold">筛选条件</Dialog.Title>
+              <Dialog.Close className="rounded-full p-1 hover:bg-gray-100">
+                <Cross2Icon className="w-4 h-4" />
+              </Dialog.Close>
+            </div>
+
+            <div className="space-y-6">
+              {/* 价格区间 */}
+              <div>
+                <h3 className="text-sm font-medium text-gray-700 mb-3">价格区间</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="relative">
+                    <input
+                      type="number"
+                      placeholder="最低价"
+                      value={priceRange.min}
+                      onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
+                      className="w-full px-6 py-2 border rounded-lg text-sm"
+                    />
+                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">¥</span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      placeholder="最高价"
+                      value={priceRange.max}
+                      onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
+                      className="w-full px-6 py-2 border rounded-lg text-sm"
+                    />
+                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">¥</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 快捷价格选择 */}
+              <div className="mt-4">
+                <h3 className="text-sm font-medium text-gray-700 mb-3">快捷选择</h3>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { label: '0-20元', min: '0', max: '20' },
+                    { label: '20-50元', min: '20', max: '50' },
+                    { label: '50-100元', min: '50', max: '100' },
+                  ].map((range) => (
+                    <button
+                      key={range.label}
+                      onClick={() => setPriceRange({ min: range.min, max: range.max })}
+                      className="w-full px-3 py-2 text-sm border rounded-lg hover:bg-gray-50"
+                    >
+                      {range.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 底部按钮 */}
+              <div className="flex space-x-4 pt-4">
+                <button
+                  onClick={() => {
+                    setPriceRange({ min: '', max: '' });
+                    setSortBy('latest');
+                  }}
+                  className="flex-1 py-2 border border-gray-300 rounded-lg text-sm"
+                >
+                  重置
+                </button>
+                <button
+                  onClick={() => {
+                    setCurrentPage(1);
+                    fetchPosts(1);
+                    setShowFilter(false);
+                  }}
+                  className="flex-1 py-2 bg-blue-500 text-white rounded-lg text-sm"
+                >
+                  确定
+                </button>
+              </div>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+    </div>
+  );
+
+  // 添加分页组件
+  const Pagination = () => (
+    <div className="flex justify-center items-center space-x-2 mt-4 pb-4">
+      <button
+        onClick={() => {
+          const newPage = currentPage - 1;
+          setCurrentPage(newPage);
+          fetchPosts(newPage);
+        }}
+        disabled={currentPage === 1}
+        className={`px-4 py-2 rounded ${
+          currentPage === 1 
+            ? 'bg-gray-200 text-gray-500' 
+            : 'bg-blue-500 text-white hover:bg-blue-600'
+        }`}
+      >
+        上一页
+      </button>
+      <span className="text-gray-600">第 {currentPage} 页</span>
+      <button
+        onClick={() => {
+          const newPage = currentPage + 1;
+          setCurrentPage(newPage);
+          fetchPosts(newPage);
+        }}
+        disabled={posts.length < PAGE_SIZE}
+        className={`px-4 py-2 rounded ${
+          posts.length < PAGE_SIZE
+            ? 'bg-gray-200 text-gray-500'
+            : 'bg-blue-500 text-white hover:bg-blue-600'
+        }`}
+      >
+        下一页
+      </button>
+    </div>
+  );
+
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       {/* Header - 只在需要时显示 */}
@@ -146,23 +355,8 @@ const Home: React.FC = () => {
           </Tabs.Trigger>
         </Tabs.List>
 
-        {/* Search bar */}
-        <form onSubmit={handleSearch} className="bg-white p-4 w-full flex items-center">
-          {/* <div className='flex flex-col justify-center'>
-            <Icon name="scan" className="h-6 w-6 text-gray-400 mr-2 mb-1"></Icon>
-            <span className='text-xs'>扫码</span>
-          </div> */}
-          <div className="flex-grow flex items-center border border-gray-300 rounded-md p-2">
-            <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 mr-2" />
-            <input
-              type="text"
-              placeholder="搜索书名、作者、分类、ISBN"
-              className="w-full outline-none"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </form>
+        {/* 筛选条件区域 */}
+        <FilterSection />
 
         {/* Posts content */}
         <div className="flex-grow overflow-auto p-4">
@@ -170,7 +364,7 @@ const Home: React.FC = () => {
             <div className="flex justify-center items-center h-32">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
             </div>
-          ) : (
+          ) : posts.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {posts.map((post) => (
                 <div key={post.id} className="bg-white overflow-hidden shadow rounded-lg">
@@ -218,8 +412,13 @@ const Home: React.FC = () => {
                 </div>
               ))}
             </div>
+          ) : (
+            <EmptyState activeTab={activeTab} />
           )}
         </div>
+
+        {/* 只在有数据时显示分页 */}
+        {posts.length > 0 && <Pagination />}
       </Tabs.Root>
 
       <Toast.Provider swipeDirection="right">

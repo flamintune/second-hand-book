@@ -33,6 +33,13 @@ interface PostQuery {
   poster_user_id?: number;
   is_purchase?: boolean;
   open_only?: boolean;
+  price_min?: number;
+  price_max?: number;
+  created_at_start?: string;
+  created_at_end?: string;
+  last_refresh_after?: string;
+  page_index?: number;
+  page_size?: number;
 }
 
 export const postApi = {
