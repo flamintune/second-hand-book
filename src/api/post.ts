@@ -32,6 +32,7 @@ interface PostQuery {
   book_isbn?: string;
   poster_user_id?: number;
   is_purchase?: boolean;
+  open_only?: boolean;
 }
 
 export const postApi = {
